@@ -1,2 +1,2 @@
 # business-api
-api para gestao de estetica
+api para gestao de pequenas empresas
