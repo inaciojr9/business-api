@@ -103,7 +103,7 @@ public class Atendimento implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Lancamento [id=" + id + ", data=" + data + ", descricao=" + descricao + ", valor=" + valor
+		return "Atendimento [id=" + id + ", data=" + data + ", descricao=" + descricao + ", valor=" + valor
 				+ ", dataCriacao=" + dataCriacao + ", dataAtualizacao=" + dataAtualizacao + ", cliente=" + cliente + "]";
 	}
 
