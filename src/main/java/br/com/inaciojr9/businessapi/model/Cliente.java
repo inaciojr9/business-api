@@ -130,7 +130,7 @@ public class Cliente implements Serializable {
 		this.empresa = empresa;
 	}
 
-	@OneToMany(mappedBy = "funcionario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	public List<Atendimento> getAtendimentos() {
 		return atendimentos;
 	}
