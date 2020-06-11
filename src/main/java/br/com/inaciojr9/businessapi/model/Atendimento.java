@@ -62,6 +62,14 @@ public class Atendimento implements Serializable {
 		this.descricao = descricao;
 	}
 	
+	public BigDecimal getValor() {
+		return valor;
+	}
+
+	public void setValor(BigDecimal valor) {
+		this.valor = valor;
+	}
+
 	@Column(name = "data_criacao", nullable = false)
 	public Date getDataCriacao() {
 		return dataCriacao;
