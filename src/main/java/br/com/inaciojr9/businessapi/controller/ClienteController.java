@@ -8,9 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +35,24 @@ public class ClienteController {
 	private ClienteService clienteService;
 
 	public ClienteController() {
+	}
+	
+	@GetMapping(value = "/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN')")
+	public ResponseEntity<Response<ClienteDto>> consultar(@PathVariable("id") Long id) throws NoSuchAlgorithmException {
+		log.info("Obtendo cliente: {}", id);
+		Response<ClienteDto> response = new Response<ClienteDto>();
+
+		Optional<Cliente> cliente = this.clienteService.buscarPorId(id);
+		
+		if (!cliente.isPresent()) {
+			log.info("Cliente não encontrado para o ID: {}", id);
+			response.getErrors().add("Cliente não encontrado para o id " + id);
+			return ResponseEntity.badRequest().body(response);
+		}
+
+		response.setData(this.converterClienteDto(cliente.get()));
+		return ResponseEntity.ok(response);
 	}
 
 	/**

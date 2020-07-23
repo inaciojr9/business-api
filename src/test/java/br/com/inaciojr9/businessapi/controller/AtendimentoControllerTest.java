@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,8 +56,7 @@ public class AtendimentoControllerTest {
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Test
-	//TODO uncomment to implement security
-	//@WithMockUser
+	@WithMockUser
 	public void testCadastrarAtendimento() throws Exception {
 		Atendimento atendimento = obterDadosAtendimento();
 		BDDMockito.given(this.clienteService.buscarPorId(Mockito.anyLong())).willReturn(Optional.of(new Cliente()));
@@ -76,8 +76,7 @@ public class AtendimentoControllerTest {
 	}
 	
 	@Test
-	//TODO uncomment to implement security
-	//@WithMockUser
+	@WithMockUser
 	public void testCadastrarAtendimentoClienteIdInvalido() throws Exception {
 		BDDMockito.given(this.clienteService.buscarPorId(Mockito.anyLong())).willReturn(Optional.empty());
 
@@ -91,8 +90,7 @@ public class AtendimentoControllerTest {
 	}
 	
 	@Test
-	//TODO uncomment to implement security
-	//@WithMockUser(username = "admin@admin.com", roles = {"ADMIN"})
+	@WithMockUser(username = "admin@admin.com", roles = {"ADMIN"})
 	public void testRemoverAtendimento() throws Exception {
 		BDDMockito.given(this.atendimentoService.buscarPorId(Mockito.anyLong())).willReturn(Optional.of(new Atendimento()));
 
@@ -101,16 +99,16 @@ public class AtendimentoControllerTest {
 				.andExpect(status().isOk());
 	}
 	
-	//TODO uncomment to implement security
-	//@Test
-	//@WithMockUser
-	/*public void testRemoverAtendimentoAcessoNegado() throws Exception {
+	
+	@Test
+	@WithMockUser
+	public void testRemoverAtendimentoAcessoNegado() throws Exception {
 		BDDMockito.given(this.atendimentoService.buscarPorId(Mockito.anyLong())).willReturn(Optional.of(new Atendimento()));
 
 		mvc.perform(MockMvcRequestBuilders.delete(URL_BASE + ID_ATENDIMENTO)
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isForbidden());
-	}*/
+	}
 
 	private String obterJsonRequisicaoPost() throws JsonProcessingException {
 		AtendimentoDto atendimentoDto = new AtendimentoDto();
