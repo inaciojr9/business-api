@@ -105,6 +105,13 @@
     		<artifactId>validation-api</artifactId>
 		</dependency>
 		
+		<!-- EhCache Begin -->
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+		</dependency>
+		<!-- EhCache End -->
+		
 	</dependencies>
 
 	<build>
