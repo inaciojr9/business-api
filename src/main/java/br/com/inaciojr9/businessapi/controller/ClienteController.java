@@ -1,5 +1,6 @@
 package br.com.inaciojr9.businessapi.controller;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -14,15 +15,21 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.inaciojr9.businessapi.dto.ClienteDto;
+import br.com.inaciojr9.businessapi.dto.cliente.ClienteDto;
+import br.com.inaciojr9.businessapi.dto.cliente.ClienteDtoConverter;
+import br.com.inaciojr9.businessapi.exception.ObjetoInvalidoException;
 import br.com.inaciojr9.businessapi.helper.web.Response;
 import br.com.inaciojr9.businessapi.model.Cliente;
+import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.service.ClienteService;
+import br.com.inaciojr9.businessapi.service.EmpresaService;
+import br.com.inaciojr9.businessapi.util.Constantes;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -32,9 +39,67 @@ public class ClienteController {
 	private static final Logger log = LoggerFactory.getLogger(ClienteController.class);
 
 	@Autowired
+	private EmpresaService empresaService;
+	
+	@Autowired
 	private ClienteService clienteService;
 
-	public ClienteController() {
+	public ClienteController() {}
+	
+	/**
+	 * Retorna um cliente dado um CPF.
+	 * 
+	 * @param cpf
+	 * @return ResponseEntity<Response<ClienteDto>>
+	 */
+	@GetMapping(value = "/cpf/{cpf}")
+	public ResponseEntity<Response<ClienteDto>> buscarPorCpf(@PathVariable("cpf") String cpf) {
+		log.info("Buscando cliente por CPF: {}", cpf);
+		Response<ClienteDto> response = new Response<ClienteDto>();
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
+		Optional<Cliente> cliente = clienteService.buscarPorCpf(empresa.get(), cpf);
+		if (!cliente.isPresent()) {
+			log.info("Cliente não encontrada para o CPF: {}", cpf);
+			response.getErrors().add("Cliente não encontrada para o CPF " + cpf);
+			return ResponseEntity.badRequest().body(response);
+		}
+
+		response.setData(ClienteDtoConverter.doModelParaDto(empresa.get(), cliente.get()));
+		return ResponseEntity.ok(response);
+	}
+	
+	/**
+	 * Retorna um cliente dado um CPF.
+	 * 
+	 * @param cpf
+	 * @return ResponseEntity<Response<ClienteDto>>
+	 */
+	@GetMapping(value = "/email/{email}")
+	public ResponseEntity<Response<ClienteDto>> buscarPorEmail(@PathVariable("email") String email) {
+		log.info("Buscando cliente por email: {}", email);
+		Response<ClienteDto> response = new Response<ClienteDto>();
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
+		Optional<Cliente> cliente = clienteService.buscarPorEmail(empresa.get(), email);
+		if (!cliente.isPresent()) {
+			log.info("Cliente não encontrado para o email: {}", email);
+			response.getErrors().add("Cliente não encontrado para o email " + email);
+			return ResponseEntity.badRequest().body(response);
+		}
+
+		response.setData(ClienteDtoConverter.doModelParaDto(empresa.get(), cliente.get()));
+		return ResponseEntity.ok(response);
 	}
 	
 	@GetMapping(value = "/{id}")
@@ -42,18 +107,70 @@ public class ClienteController {
 	public ResponseEntity<Response<ClienteDto>> consultar(@PathVariable("id") Long id) throws NoSuchAlgorithmException {
 		log.info("Obtendo cliente: {}", id);
 		Response<ClienteDto> response = new Response<ClienteDto>();
-
-		Optional<Cliente> cliente = this.clienteService.buscarPorId(id);
 		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
+		Optional<Cliente> cliente = this.clienteService.buscarPorId(empresa.get(), id);
 		if (!cliente.isPresent()) {
 			log.info("Cliente não encontrado para o ID: {}", id);
 			response.getErrors().add("Cliente não encontrado para o id " + id);
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		response.setData(this.converterClienteDto(cliente.get()));
+		response.setData(ClienteDtoConverter.doModelParaDto(empresa.get(), cliente.get()));
 		return ResponseEntity.ok(response);
 	}
+	
+	
+	/**
+	 * Adiciona um novo cliente.
+	 * @param atendimentoDto
+	 * @param result
+	 * @return
+	 * @throws ParseException
+	 */
+	@PostMapping
+	public ResponseEntity<Response<ClienteDto>> adicionar(@Valid @RequestBody ClienteDto clienteDto, BindingResult result){
+		Cliente cliente = null;
+		Optional<Empresa> empresa = Optional.empty();
+		
+		if(clienteDto == null) {
+			result.addError(new ObjectError("cliente", "Cliente inválido."));
+		} else {
+			
+			log.info("Adicionando cliente: {}", clienteDto.toString());
+			
+			empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+			if (!empresa.isPresent()) {
+				result.addError(new ObjectError("cliente", "Empresa inválida."));
+			} else {
+				
+				try {
+					validarCliente(empresa.get(), clienteDto, result);
+					cliente = ClienteDtoConverter.doDtoParaModel(empresa.get(), clienteDto);
+				} catch (ObjetoInvalidoException e1) {
+					result.addError(new ObjectError("cliente", e1.getMessage()));
+				}
+				
+			}
+		}
+		
+		Response<ClienteDto> response = new Response<ClienteDto>();
+		if (result.hasErrors()) {
+			log.error("Erro validando cliente: {}", result.getAllErrors());
+			result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
+			return ResponseEntity.badRequest().body(response);
+		}
+
+		cliente = this.clienteService.persistir(empresa.get(), cliente);
+		response.setData(ClienteDtoConverter.doModelParaDto(empresa.get(), cliente));
+		return ResponseEntity.ok(response);
+	}
+
 
 	/**
 	 * Atualiza os dados de um cliente.
@@ -67,15 +184,36 @@ public class ClienteController {
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<Response<ClienteDto>> atualizar(@PathVariable("id") Long id,
 			@Valid @RequestBody ClienteDto clienteDto, BindingResult result) throws NoSuchAlgorithmException {
+		
 		log.info("Atualizando cliente: {}", clienteDto.toString());
+		
+		Cliente cliente = null;
 		Response<ClienteDto> response = new Response<ClienteDto>();
-
-		Optional<Cliente> cliente = this.clienteService.buscarPorId(id);
-		if (!cliente.isPresent()) {
-			result.addError(new ObjectError("cliente", "Cliente não encontrado."));
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+			
+		} else {
+			Optional<Cliente> clientePersistido = this.clienteService.buscarPorId(empresa.get(), id);
+			if (!clientePersistido.isPresent()) {
+				result.addError(new ObjectError("cliente", "Cliente não encontrado para o id " + id));
+			} else {
+				
+				try {
+					validarClienteParaAtualizacao(empresa.get(), clienteDto, result);
+					cliente = ClienteDtoConverter.doDtoParaModel(empresa.get(), clienteDto);
+					cliente.setDataCriacao(clientePersistido.get().getDataCriacao());
+					cliente.setSenha(clientePersistido.get().getSenha());
+					cliente.setPerfil(clientePersistido.get().getPerfil());
+				} catch (ObjetoInvalidoException e1) {
+					result.addError(new ObjectError("cliente", e1.getMessage()));
+				}
+				
+			}
+			
 		}
-
-		this.atualizarDadosCliente(cliente.get(), clienteDto, result);
 
 		if (result.hasErrors()) {
 			log.error("Erro validando cliente: {}", result.getAllErrors());
@@ -83,74 +221,49 @@ public class ClienteController {
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		this.clienteService.persistir(cliente.get());
-		response.setData(this.converterClienteDto(cliente.get()));
+		cliente = this.clienteService.persistir(empresa.get(), cliente);
+		response.setData(ClienteDtoConverter.doModelParaDto(empresa.get(), cliente));
 
 		return ResponseEntity.ok(response);
 	}
-
-	/**
-	 * Atualiza os dados do cliente com base nos dados encontrados no DTO.
-	 * 
-	 * @param cliente
-	 * @param clienteDto
-	 * @param result
-	 * @throws NoSuchAlgorithmException
-	 */
-	private void atualizarDadosCliente(Cliente cliente, ClienteDto clienteDto, BindingResult result)
-			throws NoSuchAlgorithmException {
-		cliente.setNome(clienteDto.getNome());
-
-		if (!cliente.getEmail().equals(clienteDto.getEmail())) {
-			this.clienteService.buscarPorEmail(clienteDto.getEmail())
-					.ifPresent(func -> result.addError(new ObjectError("email", "Email já existente.")));
-			cliente.setEmail(clienteDto.getEmail());
+	
+	
+	private void validarCliente(Empresa empresa, ClienteDto clienteDto, BindingResult result) throws ObjetoInvalidoException{
+		
+		log.info("Validando cpf {}: ", clienteDto.getCpf());
+		Optional<Cliente> clientePersistido = this.clienteService.buscarPorCpf(empresa, clienteDto.getCpf());
+		if (clientePersistido.isPresent()) {
+			throw new ObjetoInvalidoException("Já existe um cliente com o cpf "+clienteDto.getCpf());
+			
+		} else {
+			
+			log.info("Validando email {}: ", clienteDto.getEmail());
+			clientePersistido = this.clienteService.buscarPorEmail(empresa, clienteDto.getEmail());
+			if (clientePersistido.isPresent()) {
+				throw new ObjetoInvalidoException("Já existe um cliente com o email "+clienteDto.getEmail());
+				
+			} 
 		}
 		
-		cliente.setCpf(clienteDto.getCpf());
-		cliente.setTelefone(clienteDto.getTelefone());
-		
-
-		/*
-		 * cliente.setQtdHorasAlmoco(null); clienteDto.getQtdHorasAlmoco()
-		 * .ifPresent(qtdHorasAlmoco ->
-		 * cliente.setQtdHorasAlmoco(Float.valueOf(qtdHorasAlmoco)));
-		 * 
-		 * cliente.setQtdHorasTrabalhoDia(null); clienteDto.getQtdHorasTrabalhoDia()
-		 * .ifPresent(qtdHorasTrabDia ->
-		 * cliente.setQtdHorasTrabalhoDia(Float.valueOf(qtdHorasTrabDia)));
-		 * 
-		 * cliente.setValorHora(null); clienteDto.getValorHora().ifPresent(valorHora ->
-		 * cliente.setValorHora(new BigDecimal(valorHora)));
-		 * 
-		 * if (clienteDto.getSenha().isPresent()) {
-		 * cliente.setSenha(PasswordUtils.gerarBCrypt(clienteDto.getSenha().get())); }
-		 */
 	}
-
-	/**
-	 * Retorna um DTO com os dados de um cliente.
-	 * 
-	 * @param cliente
-	 * @return ClienteDto
-	 */
-	private ClienteDto converterClienteDto(Cliente cliente) {
-		ClienteDto clienteDto = new ClienteDto();
-		clienteDto.setId(cliente.getId());
-		clienteDto.setEmail(cliente.getEmail());
-		clienteDto.setNome(cliente.getNome());
-		clienteDto.setCpf(cliente.getCpf());
-		clienteDto.setTelefone(cliente.getTelefone());
+	
+	private void validarClienteParaAtualizacao(Empresa empresa, ClienteDto clienteDto, BindingResult result) throws ObjetoInvalidoException{
 		
-		/*
-		 * cliente.getQtdHorasAlmocoOpt().ifPresent( qtdHorasAlmoco ->
-		 * clienteDto.setQtdHorasAlmoco(Optional.of(Float.toString(qtdHorasAlmoco))));
-		 * cliente.getQtdHorasTrabalhoDiaOpt().ifPresent( qtdHorasTrabDia ->
-		 * clienteDto.setQtdHorasTrabalhoDia(Optional.of(Float.toString(qtdHorasTrabDia)
-		 * ))); cliente.getValorHoraOpt() .ifPresent(valorHora ->
-		 * clienteDto.setValorHora(Optional.of(valorHora.toString())));
-		 */
-		return clienteDto;
+		log.info("Validando cpf {}: ", clienteDto.getCpf());
+		Optional<Cliente> clientePersistido = this.clienteService.buscarPorCpf(empresa, clienteDto.getCpf());
+		if (clientePersistido.isPresent() && clienteDto.getClienteResumoDto().getId() != clientePersistido.get().getId() ) {
+			throw new ObjetoInvalidoException("Já existe um cliente com o cpf "+clienteDto.getCpf());
+			
+		} else {
+			
+			log.info("Validando email {}: ", clienteDto.getEmail());
+			clientePersistido = this.clienteService.buscarPorEmail(empresa, clienteDto.getEmail());
+			if (clientePersistido.isPresent() && clienteDto.getClienteResumoDto().getId() != clientePersistido.get().getId()) {
+				throw new ObjetoInvalidoException("Já existe um cliente com o email "+clienteDto.getEmail());
+				
+			} 
+		}
+		
 	}
 
 }

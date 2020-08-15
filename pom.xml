@@ -19,6 +19,7 @@
 	</properties>
 
 	<dependencies>
+	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
@@ -55,10 +56,12 @@
 			<scope>runtime</scope>
 		</dependency>
 		
+		<!-- 
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
+		 -->
 		<!-- Database End -->
 		
 		<!-- Web Begin -->

@@ -1,11 +1,10 @@
-package br.com.inaciojr9.businessapi.dto;
-public class EmpresaDto {
+package br.com.inaciojr9.businessapi.dto.empresa;
+public class EmpresaResumoDto {
 	
 	private Long id;
 	private String razaoSocial;
-	private String cnpj;
 
-	public EmpresaDto() {
+	public EmpresaResumoDto() {
 	}
 
 	public Long getId() {
@@ -24,17 +23,9 @@ public class EmpresaDto {
 		this.razaoSocial = razaoSocial;
 	}
 
-	public String getCnpj() {
-		return cnpj;
-	}
-
-	public void setCnpj(String cnpj) {
-		this.cnpj = cnpj;
-	}
-
 	@Override
 	public String toString() {
-		return "EmpresaDto [id=" + id + ", razaoSocial=" + razaoSocial + ", cnpj=" + cnpj + "]";
+		return "EmpresaResumoDto [id=" + id + ", razaoSocial=" + razaoSocial + "]";
 	}
 
 }

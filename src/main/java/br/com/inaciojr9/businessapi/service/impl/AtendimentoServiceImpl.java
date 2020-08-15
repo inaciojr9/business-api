@@ -1,5 +1,7 @@
 package br.com.inaciojr9.businessapi.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -12,8 +14,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import br.com.inaciojr9.businessapi.model.Atendimento;
+import br.com.inaciojr9.businessapi.model.AtendimentoServico;
+import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.repository.AtendimentoRepository;
 import br.com.inaciojr9.businessapi.service.AtendimentoService;
+import br.com.inaciojr9.businessapi.service.AtendimentoServicoService;
 
 @Service
 public class AtendimentoServiceImpl implements AtendimentoService {
@@ -22,6 +27,9 @@ public class AtendimentoServiceImpl implements AtendimentoService {
 
 	@Autowired
 	private AtendimentoRepository atendimentoRepository;
+	
+	@Autowired
+	private AtendimentoServicoService atendimentoServicoService;
 
 	public Page<Atendimento> buscarPorClienteId(Long clienteId, PageRequest pageRequest) {
 		log.info("Buscando atendimentos para o cliente ID {}", clienteId);
@@ -29,20 +37,42 @@ public class AtendimentoServiceImpl implements AtendimentoService {
 	}
 	
 	@Cacheable("atendimentoPorId")
-	public Optional<Atendimento> buscarPorId(Long id) {
+	public Optional<Atendimento> buscarPorId(Empresa empresa, Long id) {
 		log.info("Buscando um atendimento pelo ID {}", id);
-		return this.atendimentoRepository.findById(id);
+		Optional<Atendimento> atendimento = this.atendimentoRepository.findById(id);
+		List<AtendimentoServico> servicos = this.atendimentoServicoService.buscarPorAtendimentoId(id);
+		atendimento.get().setServicos(servicos);
+		return atendimento;
 	}
 	
 	@CachePut("atendimentoPorId")
-	public Atendimento persistir(Atendimento atendimento) {
+	public Atendimento persistir(Empresa empresa, Atendimento atendimento) {
 		log.info("Persistindo o atendimento: {}", atendimento);
-		return this.atendimentoRepository.save(atendimento);
+		Atendimento atendimentoPersistido = this.atendimentoRepository.save(atendimento);
+		List<AtendimentoServico> servicos = atendimentoPersistido.getServicos();
+		if(servicos != null && !servicos.isEmpty()) {
+			List<AtendimentoServico> servicosPersistidos = new ArrayList<>();
+			for(AtendimentoServico servico : servicos) {
+				AtendimentoServico servicoPersistido = atendimentoServicoService.persistir(servico);
+				servicosPersistidos.add(servicoPersistido);
+			}
+			atendimentoPersistido.setServicos(servicosPersistidos);
+		}
+		return atendimentoPersistido;
 	}
+		 
 	
 	public void remover(Long id) {
 		log.info("Removendo o atendimento ID {}", id);
+		List<AtendimentoServico> servicos = this.atendimentoServicoService.buscarPorAtendimentoId(id);
+		for(AtendimentoServico servico:servicos) {
+			this.atendimentoServicoService.remover(servico.getId());
+		}
 		this.atendimentoRepository.deleteById(id);
+		
 	}
+	
+	
+	 
 
 }

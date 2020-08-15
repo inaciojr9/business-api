@@ -3,7 +3,6 @@ package br.com.inaciojr9.businessapi.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,28 +18,23 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-//import org.springframework.data.annotation.Transient;
-import javax.persistence.Transient;
-
 @Entity
-@Table(name = "atendimento")
-public class Atendimento implements Serializable {
+@Table(name = "despesa")
+public class Despesa implements Serializable {
 	
-	private static final long serialVersionUID = 6524560251526772839L;
-
+	private static final long serialVersionUID = -1628552468727683198L;
+	
 	private Long id;
 	private Date data;
 	private String descricao;
 	private BigDecimal valor;
 	private Date dataCriacao;
 	private Date dataAtualizacao;
-	private Cliente cliente;
 	private Empresa empresa;
-	private FormaDeRecebimento formaDeRecebimento;
+	private FormaDePagamento formaDePagamento;
 	private Integer qtdParcelas;
-	private List<AtendimentoServico> servicos;
 
-	public Atendimento() {}
+	public Despesa() {}
 
 	@Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -96,15 +90,6 @@ public class Atendimento implements Serializable {
 	public void setDataAtualizacao(Date dataAtualizacao) {
 		this.dataAtualizacao = dataAtualizacao;
 	}
-
-	@ManyToOne(fetch = FetchType.EAGER)
-	public Cliente getCliente() {
-		return cliente;
-	}
-
-	public void setCliente(Cliente cliente) {
-		this.cliente = cliente;
-	}
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	public Empresa getEmpresa() {
@@ -116,12 +101,12 @@ public class Atendimento implements Serializable {
 	}
 
 	@OneToOne(fetch = FetchType.EAGER)
-	public FormaDeRecebimento getFormaDeRecebimento() {
-		return formaDeRecebimento;
+	public FormaDePagamento getFormaDePagamento() {
+		return formaDePagamento;
 	}
 
-	public void setFormaDeRecebimento(FormaDeRecebimento formaDeRecebimento) {
-		this.formaDeRecebimento = formaDeRecebimento;
+	public void setFormaDePagamento(FormaDePagamento formaDePagamento) {
+		this.formaDePagamento = formaDePagamento;
 	}
 
 	@Column(name = "qtd_parcelas", nullable = true)
@@ -131,15 +116,6 @@ public class Atendimento implements Serializable {
 
 	public void setQtdParcelas(Integer qtdParcelas) {
 		this.qtdParcelas = qtdParcelas;
-	}
-
-	@Transient
-	public List<AtendimentoServico> getServicos() {
-		return servicos;
-	}
-
-	public void setServicos(List<AtendimentoServico> servicos) {
-		this.servicos = servicos;
 	}
 
 	@PreUpdate
@@ -156,8 +132,9 @@ public class Atendimento implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Atendimento [id=" + id + ", data=" + data + ", descricao=" + descricao + ", valor=" + valor
-				+ ", dataCriacao=" + dataCriacao + ", dataAtualizacao=" + dataAtualizacao + ", cliente=" + cliente + "]";
+		return "Despesa [id=" + id + ", data=" + data + ", descricao=" + descricao + ", valor=" + valor
+				+ ", dataCriacao=" + dataCriacao + ", dataAtualizacao=" + dataAtualizacao + ", empresa=" + empresa
+				+ ", formaDePagamento=" + formaDePagamento + ", qtdParcelas=" + qtdParcelas + "]";
 	}
 
 }

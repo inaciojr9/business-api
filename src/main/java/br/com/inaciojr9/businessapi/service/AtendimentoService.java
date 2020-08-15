@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import br.com.inaciojr9.businessapi.model.Atendimento;
+import br.com.inaciojr9.businessapi.model.Empresa;
 
 public interface AtendimentoService {
 
@@ -23,7 +24,7 @@ public interface AtendimentoService {
 	 * @param id
 	 * @return Optional<Atendimento>
 	 */
-	Optional<Atendimento> buscarPorId(Long id);
+	Optional<Atendimento> buscarPorId(Empresa empresa, Long id);
 	
 	/**
 	 * Persiste um atendimento na base de dados.
@@ -31,7 +32,7 @@ public interface AtendimentoService {
 	 * @param atendimento
 	 * @return Atendimento
 	 */
-	Atendimento persistir(Atendimento atendimento);
+	Atendimento persistir(Empresa empresa, Atendimento atendimento);
 	
 	/**
 	 * Remove um atendimento da base de dados.

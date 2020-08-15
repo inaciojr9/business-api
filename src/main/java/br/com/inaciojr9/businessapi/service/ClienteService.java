@@ -2,6 +2,7 @@ package br.com.inaciojr9.businessapi.service;
 import java.util.Optional;
 
 import br.com.inaciojr9.businessapi.model.Cliente;
+import br.com.inaciojr9.businessapi.model.Empresa;
 
 public interface ClienteService {
 	
@@ -11,7 +12,7 @@ public interface ClienteService {
 	 * @param cliente
 	 * @return Cliente
 	 */
-	Cliente persistir(Cliente cliente);
+	Cliente persistir(Empresa empresa, Cliente cliente);
 	
 	/**
 	 * Busca e retorna um funcionário dado um CPF.
@@ -19,7 +20,7 @@ public interface ClienteService {
 	 * @param cpf
 	 * @return Optional<Cliente>
 	 */
-	Optional<Cliente> buscarPorCpf(String cpf);
+	Optional<Cliente> buscarPorCpf(Empresa empresa, String cpf);
 	
 	/**
 	 * Busca e retorna um funcionário dado um email.
@@ -27,7 +28,7 @@ public interface ClienteService {
 	 * @param email
 	 * @return Optional<Cliente>
 	 */
-	Optional<Cliente> buscarPorEmail(String email);
+	Optional<Cliente> buscarPorEmail(Empresa empresa, String email);
 	
 	/**
 	 * Busca e retorna um funcionário por ID.
@@ -35,6 +36,6 @@ public interface ClienteService {
 	 * @param id
 	 * @return Optional<Cliente>
 	 */
-	Optional<Cliente> buscarPorId(Long id);
+	Optional<Cliente> buscarPorId(Empresa empresa, Long id);
 
 }

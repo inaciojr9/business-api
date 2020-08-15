@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import br.com.inaciojr9.businessapi.model.Cliente;
+import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.repository.ClienteRepository;
 
 @RunWith(SpringRunner.class)
@@ -34,35 +35,41 @@ public class ClienteServiceTest {
 		BDDMockito.given(this.clienteRepository.save(Mockito.any(Cliente.class))).willReturn(new Cliente());
 		BDDMockito.given(this.clienteRepository.findById(Mockito.anyLong())).willReturn(Optional.of(new Cliente()));
 		BDDMockito.given(this.clienteRepository.findByEmail(Mockito.anyString())).willReturn(new Cliente());
-		BDDMockito.given(this.clienteRepository.findByCpf(Mockito.anyString())).willReturn(new Cliente());
+		BDDMockito.given(this.clienteRepository.findByCpfAndEmpresa(Mockito.anyString(), Mockito.any(Empresa.class))).willReturn(new Cliente());
 	}
 
 	@Test
 	public void testPersistirCliente() {
-		Cliente cliente = this.clienteService.persistir(new Cliente());
+		Cliente cliente = this.clienteService.persistir(new Empresa(), new Cliente());
 
 		assertNotNull(cliente);
 	}
 
 	@Test
 	public void testBuscarClientePorId() {
-		Optional<Cliente> cliente = this.clienteService.buscarPorId(1L);
+		Optional<Cliente> cliente = this.clienteService.buscarPorId(new Empresa(), 1L);
 
 		assertTrue(cliente.isPresent());
 	}
 
 	@Test
 	public void testBuscarClientePorEmail() {
-		Optional<Cliente> cliente = this.clienteService.buscarPorEmail("email@email.com");
+		Optional<Cliente> cliente = this.clienteService.buscarPorEmail(new Empresa(), "email@email.com");
 
 		assertTrue(cliente.isPresent());
 	}
 
 	@Test
 	public void testBuscarClientePorCpf() {
-		Optional<Cliente> cliente = this.clienteService.buscarPorCpf("24291173474");
+		Optional<Cliente> cliente = this.clienteService.buscarPorCpf(new Empresa(), "24291173474");
 
 		assertTrue(cliente.isPresent());
+	}
+	
+	@Test
+	public void testPersistir() {
+		Cliente cliente = this.clienteService.persistir(new Empresa(), new Cliente());
+		assertNotNull(cliente);
 	}
 
 }

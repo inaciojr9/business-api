@@ -1,7 +1,5 @@
 package br.com.inaciojr9.businessapi.controller;
-import java.math.BigDecimal;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -28,12 +26,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.inaciojr9.businessapi.dto.AtendimentoDto;
+import br.com.inaciojr9.businessapi.dto.atendimento.AtendimentoDto;
+import br.com.inaciojr9.businessapi.dto.atendimento.AtendimentoDtoConverter;
+import br.com.inaciojr9.businessapi.exception.ObjetoInvalidoException;
 import br.com.inaciojr9.businessapi.helper.web.Response;
 import br.com.inaciojr9.businessapi.model.Atendimento;
 import br.com.inaciojr9.businessapi.model.Cliente;
+import br.com.inaciojr9.businessapi.model.Empresa;
+import br.com.inaciojr9.businessapi.model.FormaDeRecebimento;
 import br.com.inaciojr9.businessapi.service.AtendimentoService;
 import br.com.inaciojr9.businessapi.service.ClienteService;
+import br.com.inaciojr9.businessapi.service.EmpresaService;
+import br.com.inaciojr9.businessapi.service.FormaDeRecebimentoService;
+import br.com.inaciojr9.businessapi.util.Constantes;
 
 @RestController
 @RequestMapping("/api/atendimentos")
@@ -41,13 +46,18 @@ import br.com.inaciojr9.businessapi.service.ClienteService;
 public class AtendimentoController {
 
 	private static final Logger log = LoggerFactory.getLogger(AtendimentoController.class);
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Autowired
 	private AtendimentoService atendimentoService;
-
+	
+	@Autowired
+	private EmpresaService empresaService;
+	
 	@Autowired
 	private ClienteService clienteService;
+	
+	@Autowired
+	private FormaDeRecebimentoService formaDeRecebimentoService;
 	
 	@Value("${paginacao.qtd_por_pagina}")
 	private int qtdPorPagina;
@@ -70,9 +80,15 @@ public class AtendimentoController {
 		log.info("Buscando atendimentos por ID do cliente: {}, página: {}", clienteId, pag);
 		Response<Page<AtendimentoDto>> response = new Response<Page<AtendimentoDto>>();
 
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
 		PageRequest pageRequest = PageRequest.of(pag, this.qtdPorPagina, Direction.valueOf(dir), ord);
 		Page<Atendimento> atendimentos = this.atendimentoService.buscarPorClienteId(clienteId, pageRequest);
-		Page<AtendimentoDto> atendimentosDto = atendimentos.map(atendimento -> this.converterAtendimentoDto(atendimento));
+		Page<AtendimentoDto> atendimentosDto = atendimentos.map(atendimento -> AtendimentoDtoConverter.doModelParaDto(empresa.get(), atendimento));
 
 		response.setData(atendimentosDto);
 		return ResponseEntity.ok(response);
@@ -88,15 +104,21 @@ public class AtendimentoController {
 	public ResponseEntity<Response<AtendimentoDto>> listarPorId(@PathVariable("id") Long id) {
 		log.info("Buscando atendimento por ID: {}", id);
 		Response<AtendimentoDto> response = new Response<AtendimentoDto>();
-		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(id);
-
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
+		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(empresa.get(), id);
 		if (!atendimento.isPresent()) {
 			log.info("Atendimento não encontrado para o ID: {}", id);
 			response.getErrors().add("Atendimento não encontrado para o id " + id);
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		response.setData(this.converterAtendimentoDto(atendimento.get()));
+		response.setData(AtendimentoDtoConverter.doModelParaDto(empresa.get(), atendimento.get()));
 		return ResponseEntity.ok(response);
 	}
 
@@ -111,20 +133,42 @@ public class AtendimentoController {
 	@PostMapping
 	public ResponseEntity<Response<AtendimentoDto>> adicionar(@Valid @RequestBody AtendimentoDto atendimentoDto,
 			BindingResult result) throws ParseException {
-		log.info("Adicionando atendimento: {}", atendimentoDto.toString());
+		
+		Atendimento atendimento = null;
+		Optional<Empresa> empresa = Optional.empty();
+		
+		if(atendimentoDto == null) {
+			result.addError(new ObjectError("atendimento", "Atendimento inválido."));
+		} else {
+			
+			log.info("Adicionando atendimento: {}", atendimentoDto.toString());
+			
+			empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+			if (!empresa.isPresent()) {
+				result.addError(new ObjectError("atendimento", "Empresa inválida."));
+			} else {
+				
+				try {
+					validarAtendimento(empresa.get(), atendimentoDto, result);
+					atendimento = AtendimentoDtoConverter.doDtoParaModel(empresa.get(), atendimentoDto);
+				} catch (ObjetoInvalidoException e1) {
+					result.addError(new ObjectError("atendimento", e1.getMessage()));
+				}
+				
+			}
+		}
+		
 		Response<AtendimentoDto> response = new Response<AtendimentoDto>();
-		validarCliente(atendimentoDto, result);
-		Atendimento atendimento = this.converterDtoParaAtendimento(atendimentoDto, result);
-
 		if (result.hasErrors()) {
 			log.error("Erro validando atendimento: {}", result.getAllErrors());
 			result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		atendimento = this.atendimentoService.persistir(atendimento);
-		response.setData(this.converterAtendimentoDto(atendimento));
+		atendimento = this.atendimentoService.persistir(empresa.get(), atendimento);
+		response.setData(AtendimentoDtoConverter.doModelParaDto(empresa.get(), atendimento));
 		return ResponseEntity.ok(response);
+		
 	}
 
 	/**
@@ -139,19 +183,44 @@ public class AtendimentoController {
 	public ResponseEntity<Response<AtendimentoDto>> atualizar(@PathVariable("id") Long id,
 			@Valid @RequestBody AtendimentoDto atendimentoDto, BindingResult result) throws ParseException {
 		log.info("Atualizando atendimento: {}", atendimentoDto.toString());
+		
+		Atendimento atendimento = null;
 		Response<AtendimentoDto> response = new Response<AtendimentoDto>();
-		validarCliente(atendimentoDto, result);
-		atendimentoDto.setId(Optional.of(id));
-		Atendimento atendimento = this.converterDtoParaAtendimento(atendimentoDto, result);
-
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+			
+		} else {
+			Optional<Atendimento> atendimentoPersistido = this.atendimentoService.buscarPorId(empresa.get(), id);
+			if (!atendimentoPersistido.isPresent()) {
+				result.addError(new ObjectError("atendimento", "Atendimento não encontrado para o id " + id));
+			} else {
+				
+				try {
+					validarAtendimento(empresa.get(), atendimentoDto, result);
+					atendimento = AtendimentoDtoConverter.doDtoParaModel(empresa.get(), atendimentoDto);
+					atendimento.setDataCriacao(atendimentoPersistido.get().getDataCriacao());
+					atendimento.setEmpresa(atendimentoPersistido.get().getEmpresa());
+				} catch (ObjetoInvalidoException e1) {
+					result.addError(new ObjectError("atendimento", e1.getMessage()));
+				}
+				
+			}
+			
+		}
+		
+		
 		if (result.hasErrors()) {
 			log.error("Erro validando atendimento: {}", result.getAllErrors());
 			result.getAllErrors().forEach(error -> response.getErrors().add(error.getDefaultMessage()));
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		atendimento = this.atendimentoService.persistir(atendimento);
-		response.setData(this.converterAtendimentoDto(atendimento));
+		atendimento = this.atendimentoService.persistir(empresa.get(), atendimento);
+		response.setData(AtendimentoDtoConverter.doModelParaDto(empresa.get(), atendimento));
+
 		return ResponseEntity.ok(response);
 	}
 
@@ -166,7 +235,14 @@ public class AtendimentoController {
 	public ResponseEntity<Response<String>> remover(@PathVariable("id") Long id) {
 		log.info("Removendo atendimento: {}", id);
 		Response<String> response = new Response<String>();
-		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(id);
+		
+		Optional<Empresa> empresa = empresaService.buscarPorId(Constantes.ID_EMPRESA_DEFAULT);
+		if (!empresa.isPresent()) {
+			response.getErrors().add("Empresa não encontrada.");
+			return ResponseEntity.badRequest().body(response);
+		}
+		
+		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(empresa.get(), id);
 
 		if (!atendimento.isPresent()) {
 			log.info("Erro ao remover devido ao atendimento ID: {} ser inválido.", id);
@@ -177,80 +253,22 @@ public class AtendimentoController {
 		this.atendimentoService.remover(id);
 		return ResponseEntity.ok(new Response<String>());
 	}
-
-	/**
-	 * Valida um cliente, verificando se ele é existente e válido no
-	 * sistema.
-	 * 
-	 * @param atendimentoDto
-	 * @param result
-	 */
-	private void validarCliente(AtendimentoDto atendimentoDto, BindingResult result) {
-		if (atendimentoDto.getClienteId() == null) {
-			result.addError(new ObjectError("cliente", "Cliente não informado."));
-			return;
-		}
-
-		log.info("Validando cliente id {}: ", atendimentoDto.getClienteId());
-		Optional<Cliente> cliente = this.clienteService.buscarPorId(atendimentoDto.getClienteId());
-		if (!cliente.isPresent()) {
-			result.addError(new ObjectError("cliente", "Cliente não encontrado. ID inexistente."));
-		}
-	}
-
-	/**
-	 * Converte uma entidade atendimento para seu respectivo DTO.
-	 * 
-	 * @param atendimento
-	 * @return AtendimentoDto
-	 */
-	private AtendimentoDto converterAtendimentoDto(Atendimento atendimento) {
-		AtendimentoDto atendimentoDto = new AtendimentoDto();
-		atendimentoDto.setId(Optional.of(atendimento.getId()));
-		atendimentoDto.setData(this.dateFormat.format(atendimento.getData()));
-		atendimentoDto.setDescricao(atendimento.getDescricao());
-		atendimentoDto.setClienteId(atendimento.getCliente().getId());
-		atendimentoDto.setValor(atendimento.getValor().toString());
-
-		return atendimentoDto;
-	}
-
-	/**
-	 * Converte um AtendimentoDto para uma entidade Atendimento.
-	 * 
-	 * @param atendimentoDto
-	 * @param result
-	 * @return Atendimento
-	 * @throws ParseException 
-	 */
-	private Atendimento converterDtoParaAtendimento(AtendimentoDto atendimentoDto, BindingResult result) throws ParseException {
-		Atendimento atendimento = new Atendimento();
-
-		if (atendimentoDto.getId().isPresent()) {
-			Optional<Atendimento> lanc = this.atendimentoService.buscarPorId(atendimentoDto.getId().get());
-			if (lanc.isPresent()) {
-				atendimento = lanc.get();
-			} else {
-				result.addError(new ObjectError("atendimento", "Atendimento não encontrado."));
+	
+	private void validarAtendimento(Empresa empresa, AtendimentoDto atendimentoDto, BindingResult result) throws ObjetoInvalidoException{
+		
+		Optional<Cliente> clientePersistido = this.clienteService.buscarPorId(empresa, atendimentoDto.getCliente().getId());
+		if (!clientePersistido.isPresent()) {
+			throw new ObjetoInvalidoException("Cliente não encontrado. ID inexistente.");
+			
+		} else {
+			
+			Optional<FormaDeRecebimento> formaDeRecebimentoPersistido = this.formaDeRecebimentoService.buscarPorId(atendimentoDto.getFormaDeRecebimento().getId());
+			if (!formaDeRecebimentoPersistido.isPresent()) {
+				throw new ObjetoInvalidoException("Forma de recebimento näo encontrada. ID inexistente.");
+				
 			}
-		} else {
-			atendimento.setCliente(new Cliente());
-			atendimento.getCliente().setId(atendimentoDto.getClienteId());
 		}
-
-		atendimento.setDescricao(atendimentoDto.getDescricao());
-		atendimento.setData(this.dateFormat.parse(atendimentoDto.getData()));
-		atendimento.setValor(new BigDecimal(atendimentoDto.getValor()));
-
-		/*
-		if (EnumUtils.isValidEnum(TipoEnum.class, atendimentoDto.getTipo())) {
-			atendimento.setTipo(TipoEnum.valueOf(atendimentoDto.getTipo()));
-		} else {
-			result.addError(new ObjectError("tipo", "Tipo inválido."));
-		}
-		*/
-
-		return atendimento;
+		
 	}
-
+	
 }

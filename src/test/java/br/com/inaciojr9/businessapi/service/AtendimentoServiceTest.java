@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import br.com.inaciojr9.businessapi.model.Atendimento;
+import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.repository.AtendimentoRepository;
 
 @RunWith(SpringRunner.class)
@@ -51,14 +52,14 @@ public class AtendimentoServiceTest {
 
 	@Test
 	public void testBuscarAtendimentoPorId() {
-		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(1L);
+		Optional<Atendimento> atendimento = this.atendimentoService.buscarPorId(new Empresa(), 1L);
 
 		assertTrue(atendimento.isPresent());
 	}
 
 	@Test
 	public void testPersistirAtendimento() {
-		Atendimento atendimento = this.atendimentoService.persistir(new Atendimento());
+		Atendimento atendimento = this.atendimentoService.persistir(new Empresa(), new Atendimento());
 
 		assertNotNull(atendimento);
 	}

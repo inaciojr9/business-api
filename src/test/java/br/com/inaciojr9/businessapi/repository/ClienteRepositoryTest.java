@@ -3,8 +3,6 @@ package br.com.inaciojr9.businessapi.repository;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.security.NoSuchAlgorithmException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,12 +14,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import br.com.inaciojr9.businessapi.model.Cliente;
 import br.com.inaciojr9.businessapi.model.Empresa;
-import br.com.inaciojr9.businessapi.model.PerfilEnum;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles("test")
-public class ClienteRepositoryTest {
+public class ClienteRepositoryTest extends BaseRepositoryTest{
 
 	@Autowired
 	private ClienteRepository clienteRepository;
@@ -51,8 +48,9 @@ public class ClienteRepositoryTest {
 	}
 
 	@Test
-	public void testBuscarFuncionarioPorCpf() {
-		Cliente cliente = this.clienteRepository.findByCpf(CPF);
+	public void testBuscarClientePorCpf() {
+		
+		Cliente cliente = this.clienteRepository.findByCpfAndEmpresa(CPF, this.empresaRepository.findByCnpj(CNPJ));
 
 		assertEquals(CPF, cliente.getCpf());
 	}
@@ -78,23 +76,17 @@ public class ClienteRepositoryTest {
 		assertNotNull(cliente);
 	}
 
-	private Cliente obterDadosCliente(Empresa empresa) throws NoSuchAlgorithmException {
-		Cliente cliente = new Cliente();
-		cliente.setNome("Fulano de Tal");
-		cliente.setPerfil(PerfilEnum.ROLE_USUARIO);
-		//cliente.setSenha(PasswordUtils.gerarBCrypt("123456"));
-		cliente.setSenha("123456");
-		cliente.setCpf(CPF);
-		cliente.setEmail(EMAIL);
-		cliente.setEmpresa(empresa);
-		return cliente;
-	}
-
-	private Empresa obterDadosEmpresa() {
-		Empresa empresa = new Empresa();
-		empresa.setRazaoSocial("Empresa de exemplo");
-		empresa.setCnpj("51463645000100");
-		return empresa;
-	}
+	/*
+	 * private Cliente obterDadosCliente(Empresa empresa) throws
+	 * NoSuchAlgorithmException { Cliente cliente = new Cliente();
+	 * cliente.setNome("Fulano de Tal"); cliente.setPerfil(PerfilEnum.ROLE_USUARIO);
+	 * //cliente.setSenha(PasswordUtils.gerarBCrypt("123456"));
+	 * cliente.setSenha("123456"); cliente.setCpf(CPF); cliente.setEmail(EMAIL);
+	 * cliente.setEmpresa(empresa); return cliente; }
+	 * 
+	 * private Empresa obterDadosEmpresa() { Empresa empresa = new Empresa();
+	 * empresa.setRazaoSocial("Empresa de exemplo");
+	 * empresa.setCnpj("51463645000100"); return empresa; }
+	 */
 
 }

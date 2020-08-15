@@ -60,8 +60,8 @@ public class EmpresaControllerTest {
 		mvc.perform(MockMvcRequestBuilders.get(BUSCAR_EMPRESA_CNPJ_URL + CNPJ)
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.id").value(ID))
-				.andExpect(jsonPath("$.data.razaoSocial", equalTo(RAZAO_SOCIAL)))
+				.andExpect(jsonPath("$.data.empresaResumoDto.id").value(ID))
+				.andExpect(jsonPath("$.data.empresaResumoDto.razaoSocial", equalTo(RAZAO_SOCIAL)))
 				.andExpect(jsonPath("$.data.cnpj", equalTo(CNPJ)))
 				.andExpect(jsonPath("$.errors").isEmpty());
 	}

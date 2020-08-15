@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.inaciojr9.businessapi.dto.EmpresaDto;
+import br.com.inaciojr9.businessapi.dto.empresa.EmpresaDto;
+import br.com.inaciojr9.businessapi.dto.empresa.EmpresaDtoConverter;
 import br.com.inaciojr9.businessapi.helper.web.Response;
 import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.service.EmpresaService;
@@ -27,8 +28,7 @@ public class EmpresaController {
 	@Autowired
 	private EmpresaService empresaService;
 
-	public EmpresaController() {
-	}
+	public EmpresaController() {}
 
 	/**
 	 * Retorna uma empresa dado um CNPJ.
@@ -48,23 +48,8 @@ public class EmpresaController {
 			return ResponseEntity.badRequest().body(response);
 		}
 
-		response.setData(this.converterEmpresaDto(empresa.get()));
+		response.setData(EmpresaDtoConverter.doModelParaDto(empresa.get()));
 		return ResponseEntity.ok(response);
-	}
-
-	/**
-	 * Popula um DTO com os dados de uma empresa.
-	 * 
-	 * @param empresa
-	 * @return EmpresaDto
-	 */
-	private EmpresaDto converterEmpresaDto(Empresa empresa) {
-		EmpresaDto empresaDto = new EmpresaDto();
-		empresaDto.setId(empresa.getId());
-		empresaDto.setCnpj(empresa.getCnpj());
-		empresaDto.setRazaoSocial(empresa.getRazaoSocial());
-
-		return empresaDto;
 	}
 
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.inaciojr9.businessapi.model.Cliente;
+import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.repository.ClienteRepository;
 import br.com.inaciojr9.businessapi.service.ClienteService;
 
@@ -18,23 +19,23 @@ public class ClienteServiceImpl implements ClienteService {
 	@Autowired
 	private ClienteRepository clienteRepository;
 	
-	public Cliente persistir(Cliente cliente) {
+	public Cliente persistir(Empresa empresa, Cliente cliente) {
 		log.info("Persistindo funcionário: {}", cliente);
 		return this.clienteRepository.save(cliente);
 	}
 	
-	public Optional<Cliente> buscarPorCpf(String cpf) {
-		log.info("Buscando funcionário pelo CPF {}", cpf);
-		return Optional.ofNullable(this.clienteRepository.findByCpf(cpf));
+	public Optional<Cliente> buscarPorCpf(Empresa empresa, String cpf) {
+		log.info("Buscando cliente pelo CPF {}", cpf);
+		return Optional.ofNullable(this.clienteRepository.findByCpfAndEmpresa(cpf, empresa));
 	}
 	
-	public Optional<Cliente> buscarPorEmail(String email) {
-		log.info("Buscando funcionário pelo email {}", email);
+	public Optional<Cliente> buscarPorEmail(Empresa empresa, String email) {
+		log.info("Buscando cliente pelo email {}", email);
 		return Optional.ofNullable(this.clienteRepository.findByEmail(email));
 	}
 	
-	public Optional<Cliente> buscarPorId(Long id) {
-		log.info("Buscando funcionário pelo IDl {}", id);
+	public Optional<Cliente> buscarPorId(Empresa empresa, Long id) {
+		log.info("Buscando cliente pelo IDl {}", id);
 		return this.clienteRepository.findById(id);
 	}
 

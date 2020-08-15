@@ -24,6 +24,12 @@ public class EmpresaServiceImpl implements EmpresaService {
 		log.info("Buscando uma empresa para o CNPJ {}", cnpj);
 		return Optional.ofNullable(empresaRepository.findByCnpj(cnpj));
 	}
+	
+	@Override
+	public Optional<Empresa> buscarPorId(Long id) {
+		log.info("Buscando empresa pelo IDl {}", id);
+		return this.empresaRepository.findById(id);
+	}
 
 	@Override
 	public Empresa persistir(Empresa empresa) {

@@ -1,9 +1,7 @@
 package br.com.inaciojr9.businessapi.model;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -13,7 +11,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
@@ -27,14 +24,21 @@ public class Cliente implements Serializable {
 	private Long id;
 	private String nome;
 	private String email;
-	private String senha;
+	private String senha = "inacio123";
 	private String cpf;
 	private String telefone;
-	private PerfilEnum perfil;
+	private PerfilEnum perfil = PerfilEnum.ROLE_USUARIO;
 	private Date dataCriacao;
 	private Date dataAtualizacao;
 	private Empresa empresa;
-	private List<Atendimento> atendimentos;
+	private Date dataNascimento;
+	private String sexo;
+	private String sexoOutro;
+	private String endereco;
+	private String bairro;
+	private String cidade;
+	private String estado;
+	private String cep;
 
 	public Cliente() {
 	}
@@ -113,6 +117,7 @@ public class Cliente implements Serializable {
 		this.senha = senha;
 	}
 
+	@Column(name = "telefone", nullable = false)
 	public String getTelefone() {
 		return telefone;
 	}
@@ -129,16 +134,79 @@ public class Cliente implements Serializable {
 	public void setEmpresa(Empresa empresa) {
 		this.empresa = empresa;
 	}
-
-	@OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	public List<Atendimento> getAtendimentos() {
-		return atendimentos;
-	}
-
-	public void setAtendimentos(List<Atendimento> atendimentos) {
-		this.atendimentos = atendimentos;
-	}
 	
+	@Column(name = "data_nasc", nullable = false)
+	public Date getDataNascimento() {
+		return dataNascimento;
+	}
+
+	public void setDataNascimento(Date dataNascimento) {
+		this.dataNascimento = dataNascimento;
+	}
+
+	@Column(name = "sexo", nullable = false)
+	public String getSexo() {
+		return sexo;
+	}
+
+	public void setSexo(String sexo) {
+		this.sexo = sexo;
+	}
+
+	@Column(name = "sexo_outro", nullable = true)
+	public String getSexoOutro() {
+		return sexoOutro;
+	}
+
+	public void setSexoOutro(String sexoOutro) {
+		this.sexoOutro = sexoOutro;
+	}
+
+	@Column(name = "endereco", nullable = false)
+	public String getEndereco() {
+		return endereco;
+	}
+
+	public void setEndereco(String endereco) {
+		this.endereco = endereco;
+	}
+
+	@Column(name = "bairro", nullable = false)
+	public String getBairro() {
+		return bairro;
+	}
+
+	public void setBairro(String bairro) {
+		this.bairro = bairro;
+	}
+
+	@Column(name = "cidade", nullable = false)
+	public String getCidade() {
+		return cidade;
+	}
+
+	public void setCidade(String cidade) {
+		this.cidade = cidade;
+	}
+
+	@Column(name = "estado", nullable = false)
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
+	@Column(name = "cep", nullable = false)
+	public String getCep() {
+		return cep;
+	}
+
+	public void setCep(String cep) {
+		this.cep = cep;
+	}
+
 	@PreUpdate
     public void preUpdate() {
         dataAtualizacao = new Date();
@@ -153,9 +221,11 @@ public class Cliente implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Funcionario [id=" + id + ", nome=" + nome + ", email=" + email + ", senha=" + senha + ", cpf=" + cpf
-				+ ", telefone=" + telefone + ", perfil=" + perfil + ", dataCriacao="
-				+ dataCriacao + ", dataAtualizacao=" + dataAtualizacao + ", empresa=" + empresa + "]";
+		return "Cliente [id=" + id + ", nome=" + nome + ", email=" + email + ", senha=" + senha + ", cpf=" + cpf
+				+ ", telefone=" + telefone + ", perfil=" + perfil + ", dataCriacao=" + dataCriacao
+				+ ", dataAtualizacao=" + dataAtualizacao + ", empresa=" + empresa + ", dataNascimento=" + dataNascimento
+				+ ", sexo=" + sexo + ", sexoOutro=" + sexoOutro + ", endereco=" + endereco + ", bairro=" + bairro
+				+ ", cidade=" + cidade + ", estado=" + estado + ", cep=" + cep + "]";
 	}
 
 }
