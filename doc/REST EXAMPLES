@@ -1,0 +1,174 @@
+DTO - cliente DTO - POST	
+
+{
+    "bairro": "Samambaia",
+    "cep": "11712530",
+    "cidade": "Praia Grande",
+    "clienteResumoDto": {
+      "id": null,
+      "nome": "Inacio"
+    },
+    "cpf": "11111111111",
+    "dataNascimento": "1990-02-16",
+    "email": "inaciojr9@gmail.com",
+    "empresa": {
+      "id": 1,
+      "razaoSocial": "Klis"
+    },
+    "endereco": "Av D 345",
+    "estado": "SP",
+    "perfil": "ADMIN",
+    "sexo": "M",
+    "telefone": "01123455456"
+}
+
+
+
+DTO - cliente DTO - PUT
+
+{
+    "bairro": "Samambaia",
+    "cep": "11712530",
+    "cidade": "Praia Grande",
+    "clienteResumoDto": {
+      "id": 1,
+      "nome": "Jose Inacio"
+    },
+    "cpf": "11111111111",
+    "dataNascimento": "1990-01-15",
+    "email": "inaciojr9@gmail.com",
+    "empresa": {
+      "id": 1,
+      "razaoSocial": "Klis Solutions"
+    },
+    "endereco": "Av D 345",
+    "estado": "SP",
+    "perfil": "ADMIN",
+    "sexo": "M",
+    "telefone": "01123455456789"
+}
+
+
+{
+    "data": "2020-08-13",
+    "descricao": "observacao",
+    "valor": "120.98",
+    "cliente": {
+      "id": 1
+    },
+    "empresa": {
+      "id": 1
+    },
+    "formaDeRecebimento": {
+      "id": 1
+    },
+    "qtdParcelas": 2
+    "servicos": {[
+	{
+		"valor":123.45,
+		"servico":{
+			"id":1
+		},
+		"empresa":{
+			"id":1
+		}
+	},
+	{
+		"valor":678.90,
+		"servico":{
+			"id":2
+		},
+		"empresa":{
+			"id":1
+		}
+	}
+
+    ]}
+}
+
+
+
+
+
+
+
+
+
+
+
+POST ATENDIMENTO
+
+{
+  "cliente": {
+    "id": 1,
+    "nome": "string"
+  },
+  "data": "1111-11-11 11:11",
+  "descricao": "desc string",
+  "empresa": {
+    "id": 1,
+    "razaoSocial": "string"
+  },
+  "formaDeRecebimento": {
+    "id": 1,
+    "nome": "string"
+  },
+  "qtdParcelas": "1",
+  "servicos": [
+    {
+      "dataAtualizacao": "string",
+      "dataCriacao": "string",
+      "empresa": {
+        "id": 1,
+        "razaoSocial": "string"
+      },
+      "servico": {
+        "id": 1,
+        "nome": "string"
+      },
+      "valor": "1.11",
+      "atendimentoId" : 1
+    }
+  ],
+  "valor": "2.22"
+  
+}
+
+
+
+
+POST GESTAO MENSAL
+
+
+{
+  "ano": 2020,
+  "despesaTotal": "100",
+  "empresa": {
+    "id": 1
+  },
+  "mes": 1,
+  "meta": "12000",
+  "percentualComissao": "20",
+  "receitaProduto": "0"
+}
+
+
+PUT GESTAO MENSAL
+
+{
+  "ano": 2020,
+  "despesaTotal": "100",
+  "empresa": {
+    "id": 1
+  },
+  "mes": 3,
+  "meta": "12000",
+  "percentualComissao": "20",
+  "receitaProduto": "0"
+}
+
+
+
+
+
+
