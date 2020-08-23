@@ -1,6 +1,5 @@
 package br.com.inaciojr9.businessapi.dto.atendimento;
 
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -41,13 +40,11 @@ public class AtendimentoDtoConverter {
 	}
 	
 	
-	public static Atendimento doDtoParaModel(Empresa empresa, AtendimentoDto dto) throws ObjetoInvalidoException {
+	public static Atendimento doDtoParaModel(Empresa empresa, AtendimentoDtoIn dto) throws ObjetoInvalidoException {
 		
 		Atendimento atendimento = new Atendimento();
 		atendimento.setEmpresa(empresa);
-		atendimento.setId(dto.getId());
 		atendimento.setCliente(ClienteResumoDtoConverter.doDtoParaModel(dto.getCliente()));
-		atendimento.setValor(new BigDecimal(dto.getValor()));
 		atendimento.setFormaDeRecebimento(FormaDeRecebimentoDtoConverter.doDtoParaModel(dto.getFormaDeRecebimento()));
 		atendimento.setQtdParcelas(Integer.valueOf(dto.getQtdParcelas()));
 		try {

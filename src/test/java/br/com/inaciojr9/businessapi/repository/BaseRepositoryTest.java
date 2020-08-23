@@ -1,11 +1,15 @@
 package br.com.inaciojr9.businessapi.repository;
 
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import br.com.inaciojr9.businessapi.model.Atendimento;
 import br.com.inaciojr9.businessapi.model.Cliente;
 import br.com.inaciojr9.businessapi.model.Empresa;
+import br.com.inaciojr9.businessapi.model.GestaoMensal;
 import br.com.inaciojr9.businessapi.model.PerfilEnum;
 import br.com.inaciojr9.businessapi.util.PasswordUtils;
 
@@ -13,11 +17,17 @@ public class BaseRepositoryTest {
 	
 	public static final String CNPJ = "51463645000100";
 	
-	public Atendimento obterDadosAtendimentos(Cliente cliente){
+	public Atendimento obterDadosAtendimentos(Empresa empresa, Cliente cliente, Integer ano, Integer mes, Integer dia){
 		Atendimento atendimento = new Atendimento();
-		atendimento.setData(new Date());
+		try {
+			atendimento.setData(new SimpleDateFormat("yyyy-MM-dd").parse(ano.toString()+"-"+mes.toString()+"-"+dia.toString()));
+		} catch (ParseException e) {
+			// nunca deveria lançar essa exceção
+			e.printStackTrace();
+		}
 		atendimento.setDescricao("limpeza de pele");
 		atendimento.setCliente(cliente);
+		atendimento.setEmpresa(empresa);
 		return atendimento;
 	}
 
@@ -40,6 +50,24 @@ public class BaseRepositoryTest {
 		
 		cliente.setEmpresa(empresa);
 		return cliente;
+	}
+	
+	public GestaoMensal obterDadosGestaoMensal(Long id, Integer ano, Integer mes, 
+			BigDecimal receitaProduto, BigDecimal receitaServico,
+			BigDecimal despesaTotal, BigDecimal meta, BigDecimal percentualComissao, Empresa empresa){
+		
+		GestaoMensal gestaoMensal = new GestaoMensal(
+				id, 
+				ano, 
+				mes,
+				receitaProduto, 
+				receitaServico, 
+				despesaTotal, 
+				meta, 
+				percentualComissao, 
+				empresa);
+		
+		return gestaoMensal;
 	}
 
 	public Empresa obterDadosEmpresa() {

@@ -1,6 +1,7 @@
 package br.com.inaciojr9.businessapi.controller;
 
 
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import br.com.inaciojr9.businessapi.exception.ObjetoInvalidoException;
 import br.com.inaciojr9.businessapi.helper.web.Response;
 import br.com.inaciojr9.businessapi.model.Empresa;
 import br.com.inaciojr9.businessapi.model.GestaoMensal;
+import br.com.inaciojr9.businessapi.service.AtendimentoService;
 import br.com.inaciojr9.businessapi.service.EmpresaService;
 import br.com.inaciojr9.businessapi.service.GestaoMensalService;
 import br.com.inaciojr9.businessapi.util.Constantes;
@@ -46,6 +48,9 @@ public class GestaoMensalController {
 	
 	@Autowired
 	private GestaoMensalService gestaoMensalService;
+	
+	@Autowired
+	private AtendimentoService atendimentoService;
 
 	public GestaoMensalController() {}
 	
@@ -126,7 +131,8 @@ public class GestaoMensalController {
 				
 				try {
 					validarGestaoMensal(empresa.get(), gestaoMensalDto, result);
-					gestaoMensal = GestaoMensalDtoConverter.doDtoParaModel(empresa.get(), gestaoMensalDto);
+					BigDecimal receitaServico = atendimentoService.getValorTotalDosAtendimentosDeUmAnoMes(empresa.get(), gestaoMensalDto.getAno(), gestaoMensalDto.getMes());
+					gestaoMensal = GestaoMensalDtoConverter.doDtoParaModel(empresa.get(), gestaoMensalDto, receitaServico);
 				} catch (ObjetoInvalidoException e1) {
 					result.addError(new ObjectError("gestaoMensal", e1.getMessage()));
 				}
@@ -174,7 +180,8 @@ public class GestaoMensalController {
 				
 			try {
 				GestaoMensal gestaoMensalPersistida = validarGestaoMensalParaAtualizacao(empresa.get(), id, gestaoMensalDto, result);
-				gestaoMensal = GestaoMensalDtoConverter.doDtoParaModel(empresa.get(), gestaoMensalDto);
+				BigDecimal receitaServico = atendimentoService.getValorTotalDosAtendimentosDeUmAnoMes(empresa.get(), gestaoMensalDto.getAno(), gestaoMensalDto.getMes());
+				gestaoMensal = GestaoMensalDtoConverter.doDtoParaModel(empresa.get(), gestaoMensalDto, receitaServico);
 				gestaoMensal.setId(id);
 				gestaoMensal.setDataCriacao(gestaoMensalPersistida.getDataCriacao());
 			} catch (ObjetoInvalidoException e1) {

@@ -1,5 +1,6 @@
 package br.com.inaciojr9.businessapi.repository;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,19 +37,23 @@ public class AtendimentoRepositoryTest extends BaseRepositoryTest {
 	private Long clienteId;
 	private Long atendimentoId1;
 	private Long atendimentoId2;
+	private Long atendimentoId3;
+	private Empresa empresa;
 
 
 	@Before
 	public void setUp() throws Exception {
-		Empresa empresa = this.empresaRepository.save(obterDadosEmpresa());
+		empresa = this.empresaRepository.save(obterDadosEmpresa());
 		
 		Cliente cliente = this.clienteRepository.save(obterDadosCliente(empresa));
 		this.clienteId = cliente.getId();
 		
-		Atendimento atendimento1 = this.atendimentoRepository.save(obterDadosAtendimentos(cliente));
+		Atendimento atendimento1 = this.atendimentoRepository.save(obterDadosAtendimentos(empresa, cliente, 2020, 1, 10));
 		this.atendimentoId1 = atendimento1.getId();
-		Atendimento atendimento2 = this.atendimentoRepository.save(obterDadosAtendimentos(cliente));
+		Atendimento atendimento2 = this.atendimentoRepository.save(obterDadosAtendimentos(empresa, cliente, 2020, 1, 31));
 		this.atendimentoId2 = atendimento2.getId();
+		Atendimento atendimento3 = this.atendimentoRepository.save(obterDadosAtendimentos(empresa, cliente, 2020, 2, 15));
+		this.atendimentoId3 = atendimento3.getId();
 	}
 
 	@After
@@ -62,9 +67,10 @@ public class AtendimentoRepositoryTest extends BaseRepositoryTest {
 	public void testBuscarAtendimentosPorClienteId() {
 		List<Atendimento> atendimentos = this.atendimentoRepository.findByClienteId(clienteId);
 		
-		assertEquals(2, atendimentos.size());
+		assertEquals(3, atendimentos.size());
 		assertEquals(atendimentoId1, atendimentos.get(0).getId());
 		assertEquals(atendimentoId2, atendimentos.get(1).getId());
+		assertEquals(atendimentoId3, atendimentos.get(2).getId());
 	}
 	
 	@Test
@@ -80,31 +86,14 @@ public class AtendimentoRepositoryTest extends BaseRepositoryTest {
 		
 		Page<Atendimento> atendimentos = this.atendimentoRepository.findByClienteId(clienteId, page);
 		
-		assertEquals(2, atendimentos.getTotalElements());
+		assertEquals(3, atendimentos.getTotalElements());
 	}
 	
-	/*
-	 * private Atendimento obterDadosAtendimentos(Cliente cliente){ Atendimento
-	 * atendimento = new Atendimento(); atendimento.setData(new Date());
-	 * atendimento.setDescricao("limpeza de pele"); atendimento.setCliente(cliente);
-	 * return atendimento; }
-	 * 
-	 * private Cliente obterDadosCliente(Empresa empresa) throws
-	 * NoSuchAlgorithmException { Cliente cliente = new Cliente();
-	 * cliente.setNome("Fulano de Tal"); cliente.setPerfil(PerfilEnum.ROLE_USUARIO);
-	 * cliente.setSenha(PasswordUtils.gerarBCrypt("123456"));
-	 * cliente.setDataNascimento(new Date()); cliente.setCpf("24291173474");
-	 * cliente.setSexo("O"); cliente.setSexoOutro("outro sexo");
-	 * cliente.setEmail("email@email.com"); cliente.setTelefone("12345678");
-	 * cliente.setEndereco("endereco"); cliente.setBairro("bairro");
-	 * cliente.setCidade("cidade"); cliente.setEstado("SP");
-	 * cliente.setCep("11111111");
-	 * 
-	 * cliente.setEmpresa(empresa); return cliente; }
-	 * 
-	 * private Empresa obterDadosEmpresa() { Empresa empresa = new Empresa();
-	 * empresa.setRazaoSocial("Empresa de exemplo");
-	 * empresa.setCnpj("51463645000100"); return empresa; }
-	 */
+	@Test
+	public void testFindByAnoEMes() {
+		List<Atendimento> atendimentos = this.atendimentoRepository.getAllPorAnoEMes(2020, 1, empresa.getId());
+		assertNotNull(atendimentos);
+		assertEquals(2, atendimentos.size());
+	}
 
 }

@@ -182,13 +182,15 @@ public class GestaoMensal {
 	}
 	
 	public BigDecimal calcularValorComissao() {
-		System.out.println(">>>>>>>>>>>>>>>>> resultado operacional "+this.resultadoOperacional);
-		if(this.resultadoOperacional.compareTo(new BigDecimal(0)) == -1) {
-			System.out.println(">>>>>>>>>>>>>>>>> 0 ");
+		if(this.resultadoOperacional.compareTo(new BigDecimal(0)) == -1) { // menor que 0
 			return new BigDecimal(0);
 		} else {
-			System.out.println(">>>>>>>>>>>>>>>>> else ");
-			return this.resultadoOperacional.multiply(this.percentualComissao).divide(new BigDecimal(100));
+			BigDecimal valorParaCalculoDeComissao = this.resultadoOperacional.subtract(this.meta);
+			if(valorParaCalculoDeComissao.compareTo(new BigDecimal(0)) == 1) { // maior que 0
+				return valorParaCalculoDeComissao.multiply(this.percentualComissao).divide(new BigDecimal(100));
+			}else {
+				return new BigDecimal(0);
+			}
 		}
 	}
 	

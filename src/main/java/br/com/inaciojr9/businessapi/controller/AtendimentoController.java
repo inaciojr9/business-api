@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.inaciojr9.businessapi.dto.atendimento.AtendimentoDto;
 import br.com.inaciojr9.businessapi.dto.atendimento.AtendimentoDtoConverter;
+import br.com.inaciojr9.businessapi.dto.atendimento.AtendimentoDtoIn;
 import br.com.inaciojr9.businessapi.exception.ObjetoInvalidoException;
 import br.com.inaciojr9.businessapi.helper.web.Response;
 import br.com.inaciojr9.businessapi.model.Atendimento;
@@ -131,7 +132,7 @@ public class AtendimentoController {
 	 * @throws ParseException 
 	 */
 	@PostMapping
-	public ResponseEntity<Response<AtendimentoDto>> adicionar(@Valid @RequestBody AtendimentoDto atendimentoDto,
+	public ResponseEntity<Response<AtendimentoDto>> adicionar(@Valid @RequestBody AtendimentoDtoIn atendimentoDto,
 			BindingResult result) throws ParseException {
 		
 		Atendimento atendimento = null;
@@ -181,7 +182,7 @@ public class AtendimentoController {
 	 */
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<Response<AtendimentoDto>> atualizar(@PathVariable("id") Long id,
-			@Valid @RequestBody AtendimentoDto atendimentoDto, BindingResult result) throws ParseException {
+			@Valid @RequestBody AtendimentoDtoIn atendimentoDto, BindingResult result) throws ParseException {
 		log.info("Atualizando atendimento: {}", atendimentoDto.toString());
 		
 		Atendimento atendimento = null;
@@ -201,6 +202,7 @@ public class AtendimentoController {
 				try {
 					validarAtendimento(empresa.get(), atendimentoDto, result);
 					atendimento = AtendimentoDtoConverter.doDtoParaModel(empresa.get(), atendimentoDto);
+					atendimento.setId(id);
 					atendimento.setDataCriacao(atendimentoPersistido.get().getDataCriacao());
 					atendimento.setEmpresa(atendimentoPersistido.get().getEmpresa());
 				} catch (ObjetoInvalidoException e1) {
@@ -254,7 +256,7 @@ public class AtendimentoController {
 		return ResponseEntity.ok(new Response<String>());
 	}
 	
-	private void validarAtendimento(Empresa empresa, AtendimentoDto atendimentoDto, BindingResult result) throws ObjetoInvalidoException{
+	private void validarAtendimento(Empresa empresa, AtendimentoDtoIn atendimentoDto, BindingResult result) throws ObjetoInvalidoException{
 		
 		Optional<Cliente> clientePersistido = this.clienteService.buscarPorId(empresa, atendimentoDto.getCliente().getId());
 		if (!clientePersistido.isPresent()) {

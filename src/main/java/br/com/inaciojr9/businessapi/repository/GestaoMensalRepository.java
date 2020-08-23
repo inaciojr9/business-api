@@ -11,4 +11,5 @@ public interface GestaoMensalRepository extends JpaRepository<GestaoMensal, Long
 
 	GestaoMensal findByEmpresaAndAnoAndMes(Empresa empresa, Integer ano, Integer mes);
 	
+	
 }

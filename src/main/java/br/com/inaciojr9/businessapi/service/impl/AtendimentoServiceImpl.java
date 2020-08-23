@@ -1,5 +1,6 @@
 package br.com.inaciojr9.businessapi.service.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,18 +46,43 @@ public class AtendimentoServiceImpl implements AtendimentoService {
 		return atendimento;
 	}
 	
+	@Override
+	public List<Atendimento> buscarPorMesAno(Empresa empresa, Integer ano, Integer mes) {
+		log.info("Buscando os atendimentos por ano {} e mes {}", ano, mes);
+		return this.atendimentoRepository.getAllPorAnoEMes(ano, mes, empresa.getId());
+	}
+	
+	@Override
+	public BigDecimal getValorTotalDosAtendimentosDeUmAnoMes(Empresa empresa, Integer ano, Integer mes) {
+		BigDecimal valorTotal = new BigDecimal(0);
+		List<Atendimento> atendimentos = buscarPorMesAno(empresa, ano, mes);
+		if(atendimentos != null && !atendimentos.isEmpty()) {
+			for(Atendimento atendimento:atendimentos) {
+				valorTotal = valorTotal.add(atendimento.getValor());
+			}
+		}
+		return valorTotal;
+	}
+	
 	@CachePut("atendimentoPorId")
 	public Atendimento persistir(Empresa empresa, Atendimento atendimento) {
 		log.info("Persistindo o atendimento: {}", atendimento);
+		BigDecimal valorTotal = new BigDecimal(0);
+		atendimento.setValor(valorTotal);
 		Atendimento atendimentoPersistido = this.atendimentoRepository.save(atendimento);
 		List<AtendimentoServico> servicos = atendimentoPersistido.getServicos();
 		if(servicos != null && !servicos.isEmpty()) {
 			List<AtendimentoServico> servicosPersistidos = new ArrayList<>();
+			
 			for(AtendimentoServico servico : servicos) {
+				servico.setAtendimentoId(atendimento.getId());
 				AtendimentoServico servicoPersistido = atendimentoServicoService.persistir(servico);
+				valorTotal = valorTotal.add(servicoPersistido.getValor());
 				servicosPersistidos.add(servicoPersistido);
 			}
 			atendimentoPersistido.setServicos(servicosPersistidos);
+			atendimentoPersistido.setValor(valorTotal);
+			this.atendimentoRepository.save(atendimentoPersistido);
 		}
 		return atendimentoPersistido;
 	}

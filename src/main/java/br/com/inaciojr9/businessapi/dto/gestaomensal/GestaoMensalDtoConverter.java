@@ -44,10 +44,7 @@ public class GestaoMensalDtoConverter {
 	}
 	
 	
-	public static GestaoMensal doDtoParaModel(Empresa empresa, GestaoMensalDtoIn dtoIn) throws ObjetoInvalidoException {
-		
-		// Get receita servico;
-		BigDecimal receitaServico = new BigDecimal(0);
+	public static GestaoMensal doDtoParaModel(Empresa empresa, GestaoMensalDtoIn dtoIn, BigDecimal receitaServico) throws ObjetoInvalidoException {
 		
 		GestaoMensal model = new GestaoMensal( 	null,
 												dtoIn.getAno(),
